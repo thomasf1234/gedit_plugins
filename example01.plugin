@@ -1,0 +1,10 @@
+[Plugin]
+Loader=python
+Module=example01
+IAge=3
+Name=Example #1
+Description=A minimal plugin
+Authors=Micah Carrick
+Copyright=Copyright © 2011 Micah Carrick
+Website=http://www.micahcarrick.com
+Version=3.0.0
