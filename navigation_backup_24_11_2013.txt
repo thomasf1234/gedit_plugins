@@ -40,9 +40,25 @@
 
 
 #need plugin to move between spec and document Ctrl+Shift+t
+regex span
+import re
+regex = "\.[a-zA-Z][a-zA-Z0-9_]+[.?=! (]"  #for method
+line = "if john.donkey_kong == 'Clark Kent'"
+#returns range where pattern was matched in the string
+def find_span(regex, line): #must return obj with all data generic 
+  for m in re.finditer(regex, line):
+    print '%02d-%02d: %s' % (m.start(), m.end(), m.group(0))
 
-import os, glob, re, shlex
-from subprocess import Popen, PIPE
+dictionary_regex={
+'.method_a' : "\.[a-zA-Z][a-zA-Z0-9_]+[.?=! (]", #method belonging to object
+'Module::Class.method_a': "([A-Z][a-zA-Z0-9_]*::)*[A-Z][a-zA-Z0-9_]*\.[a-zA-Z][a-zA-Z0-9_]*[a-zA-Z0-9_.?=!(]?" #must fix
+}
+
+
+
+
+
+import os, glob, re
 from gi.repository import GObject, Gtk, Gedit, Gio
 
 class ExamplePlugin03(GObject.Object, Gedit.WindowActivatable):
@@ -53,33 +69,11 @@ class ExamplePlugin03(GObject.Object, Gedit.WindowActivatable):
 
     def __init__(self):
         GObject.Object.__init__(self)
-        
-        #used for keyboard shortcut
         self.flag = 0
-        
-        #used to find input
-        self.array_regex = [
-        #___'Module::Class.method_a'___
-        "([A-Z][a-zA-Z0-9_]*::)*[A-Z][a-zA-Z0-9_]*\.[a-zA-Z][a-zA-Z0-9_]+[?=!]?",  
-        #___'.method_a'___
-        "\.[a-zA-Z][a-zA-Z0-9_]+[?=!]?"
-        ]
-        
-        #used for building diictionary
-        self.array_regex_search = [
-        #___module___
-        "module [A-Z][a-zA-z0-9]*",
-        #___class___
-        "class [A-Z][a-zA-z0-9]*",
-        #___instance_method___
-        "def [a-zA-Z][a-zA-Z0-9_]*[.?=! (]", 
-        #___class_method___
-        "def self\.[a-zA-Z][a-zA-Z0-9_]*[.?=! (]",
-        #___attr_accessor___
-        "attr_accessor[ ]+:[a-zA-Z][a-zA-Z0-9_]*"
-        ]
-        
-        self.build_dictionary() #must change to do when file opens from rails app.
+        self.dictionary_regex = {
+        '.method_a' : "\.[a-zA-Z][a-zA-Z0-9_]+[.?=! (]", #method belonging to object
+        'Module::Class.method_a': "([A-Z][a-zA-Z0-9_]*::)*[A-Z][a-zA-Z0-9_]*\.[a-zA-Z][a-zA-Z0-9_]*[a-zA-Z0-9_.?=!(]?" #must fix
+        }
 
     def do_activate(self):
         print "Activating plugin..."
@@ -118,14 +112,15 @@ class ExamplePlugin03(GObject.Object, Gedit.WindowActivatable):
         if event.keyval == 98 and self.flag == 1: 
             print "Ctrl+b has been pressed"
             self.flag = 0
-
-            input_string = self.input_for_search()
-            print "input string is : '%s'" % input_string
-            declaration_details = self.declaration_search(input_string).split(':')
-            self.jump_to_declaration(declaration_details[0],int(declaration_details[1]),int(declaration_details[2]))
-            #self.jump_to_declaration(declaration_details.path, declaration_details.line, declaration_details.column)
-            #self.jump_to_declaration("/home/ad/.local/share/gedit/plugins/orig_example01.py",57,17) #in gedit: Ln 57, Col 19
+            #get the active tab, then get the document, then goto line 41 (unless non-existent), 
+            #offset 3 (0 if non-existent) (line 41 = 40 the lines start at 0)
             
+            #self.window.create_tab(True)  #view_new(Gedit.Document.document_new()) 
+            #self.window.get_active_tab().get_document().goto_line_offset(40,3)#.goto_line(9) 
+            #self.window.get_active_view().scroll_to_cursor()
+            
+            self.input_for_search()
+            self.jump_to_declaration("/home/ad/.local/share/gedit/plugins/orig_example01.py",57,17) #in gedit: Ln 57, Col 19
             #self.jump_to_declaration("/home/ad/own_bash_scripts/set_up_initial_workspace.sh",94,22) #in gedit: Ln 57, Col 19
             
         #if 'Ctrl' key is released
@@ -158,7 +153,7 @@ class ExamplePlugin03(GObject.Object, Gedit.WindowActivatable):
         
         
         
-    #returns the input_string used for the search through the library of declaration locations    
+        
     def input_for_search(self): #need to optimise, pass in  more than self
         #must check file extension for language
         document = self.window.get_active_tab().get_document()
@@ -166,40 +161,29 @@ class ExamplePlugin03(GObject.Object, Gedit.WindowActivatable):
         extension = document_name.split('.')[-1] #splits string at each '.' into an array and returns last element
         print "document extension : '%s'" % extension
         
-        if extension == "rb": #must change to "rb"
-            cursor_mark = document.get_insert()
+        if extension == "rb" #must change to "rb"
+            iter = document.get_iter_at_mark(document.get_insert()) #see https://developer.gnome.org/pygtk/stable/class-gtktextiter.html
+            print "line: %s" % iter.get_line()
+            print "line offset: %s" % iter.get_line_offset()#+1
+            print "char: %s" % iter.get_char()
+            print "forward char true: %s" % iter.forward_char() #move to next char.
+            print "forward char true: %s" % iter.forward_char()
+            print "forward two chars from previous get_char() char: %s" % iter.get_char()
+            self.find_all_regex_matches(iter)
             
-            iter_start_line = document.get_iter_at_mark(cursor_mark)
             
-            line_offset = iter_start_line.get_line_offset()#+1
-            print "line offset: %s" % line_offset
+    def find_all_regex_matches(self, iter):
+        #iterate through all regex 
+        line = iter.get_line()
+        line_string = ####
+        for key in sorted(self.dictionary_regex.keys()):
+            self.find_span(dictionary_regex[key], line_string)    
             
-            iter_start_line.set_line_offset(0)
-            print "start_line %s" % iter_start_line.get_line_offset()
-            
-            iter_end_line = document.get_iter_at_mark(cursor_mark) #see https://developer.gnome.org/pygtk/stable/class-gtktextiter.html
-           # print "line: %s" % iter_end_line.get_line()#+1
-            iter_end_line.forward_to_line_end()
-            print "end_line %s" % iter_end_line.get_line_offset()
-            line_string = document.get_text(iter_start_line, iter_end_line, False)
-            print "line_string: %s" % line_string
-            return self.find_all_regex_matches(line_string, line_offset)
-
-    #iterate through all regex and execute find_span                 
-    def find_all_regex_matches(self, line_string, column): 
-        for element in self.array_regex:
-            word = self.find_span(element, line_string, column)
-            if word:
-                return word
-                
-                   
-    #returns True if input pattern was matched in the string and the substring found contains the column passed.
-    def find_span(self, regex, string, column):
+    #returns range where pattern was matched in the string
+    def find_span(self, regex, string): #must return obj with all data generic 
         for m in re.finditer(regex, string):
-            print '%02d-%02d: %s %s' % (m.start(), m.end(), m.group(0), regex) 
-            if self.in_range(m.start(), m.end(), column) == True: #if we know what we are looking for, then ...
-                return m.group(0)                
-                       
+            print '%02d-%02d: %s' % (m.start(), m.end(), m.group(0))            
+      
      
     #scandirs('/home/ad/workspace/order_service')  prints all file names recursively.   
     def scandirs(self, path):
@@ -208,29 +192,54 @@ class ExamplePlugin03(GObject.Object, Gedit.WindowActivatable):
                 print 'got a directory: ' + currentFile
                 scandirs(currentFile)
                 print "processing file: " + currentFile
-                
-    #returns True if current is in range (start, end) excluding boundaries                
-    def in_range(self, start, end, current):
-        if current > start and current < (end+1):
+   
+      
+    def build_dictionary(self, file_path)
+    #this function will build an object which contains the structure of the file and its attributes will be saved at the end
+    #must return the string
+        regex_module = "module [A-Z][a-zA-z0-9]*"
+        regex_class = "class [A-Z][a-zA-z0-9]*"
+        regex method = "def [a-zA-Z][a-zA-Z0-9_]*[.?=! (]" 
+        regex_class_method = "def self\.[a-zA-Z][a-zA-Z0-9_]*[.?=! (]" 
+        regex_attr_accessor = "attr_accessor[ ]+:[a-zA-Z][a-zA-Z0-9_]*" #need to rework all of theses regex's   
+        #find and return obj here
+        substring = #####
+        #then
+        #substring.split(' ')[-1] #need some regex here to get the module/class/method name
+        pattern = re.compile('\S+') #setup all regex in initialisation
+        name = re.findall(pattern, string)[-1]
+
+               
+      
+      
+      
+          
+      
+      
+      
+            
+        regex = "[A-Z][a-z]+::[A-Z][a-z]+\.[a-z]+"
+        import re
+        a = re.compile(regex)
+        a.match('A7A6')    
+        
+       
+        
+    def is_true(string):
+        if a.match(string):
             return True
         else:
             return False
-    
-    #build arrays representing locations of declarations
-    #TODO: run in another thread  
-    def build_dictionary(self):  
-        cmd = "egrep -inor 'def [a-zA-Z][a-zA-Z0-9_]*[.?=! (]?' /home/ad/workspace/orders_service"
-        (stdout, stderr) = Popen(shlex.split(cmd), stdout=PIPE).communicate() #creates string from egrep output
-        self.instance_methods_locations = stdout.split('\n')
-        print self.instance_methods_locations
-    
-    #search the library for the correct item and return its location
-    def declaration_search(self, input_string):
-        for i in self.instance_methods_locations:
-            #print '___%s_______%s___' % (input_string[1:], i.split(':')[-1])
-            for m in re.finditer(input_string[1:], i.split(':')[-1]): #careful because of the dot 
-                print 'matched: %s, input_string: %s, file_path: %s, line: %s' % (m.group(0), input_string, i.split(':')[0], i.split(':')[1])
-                return '%s:%s:%s' % (i.split(':')[0], i.split(':')[1], 0)  
-                
-                
-                         
+
+    #  Class.method
+    #  Module::Class.method
+    #  Class
+    #  Class
+            
+  
+            
+                     
+                             
+            #print document paths
+            #print "document path: %s" % document.get_uri_for_display()
+               

@@ -222,7 +222,6 @@ class ExamplePlugin03(GObject.Object, Gedit.WindowActivatable):
         cmd = "egrep -inor 'def [a-zA-Z][a-zA-Z0-9_]*[.?=! (]?' /home/ad/workspace/orders_service"
         (stdout, stderr) = Popen(shlex.split(cmd), stdout=PIPE).communicate() #creates string from egrep output
         self.instance_methods_locations = stdout.split('\n')
-        print self.instance_methods_locations
     
     #search the library for the correct item and return its location
     def declaration_search(self, input_string):

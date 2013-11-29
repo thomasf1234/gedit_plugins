@@ -1,0 +1,140 @@
+file = open('/home/ad/log')
+lines = file.readlines()#.split('/n')
+f.close()
+
+
+if require/require_relative, load in the file string and add to ours
+do this recursively.
+
+then...
+module
+
+if class then get name, and set deepness=deepness+1 for this class.
+if method set deepness to 1, for end set deepness= deepness-1
+
+at the end we want
+
+using require to load in other code
+class TestClass => 
+[:test_method, :test_method ...] #class methods
+
+instance methods
+
+attributes
+
+instance variables
+
+#####################################################################################
+
+array
+
+
+find_start_of_a_word
+q_is_it_a_keyword
+if yes then:
+  find_start_of_a_word
+  get_word
+  go_on_to_next_line
+else:
+  move_past_word
+  go_back_to_top!
+
+
+
+
+
+only want to check for keyword if we come across a word.
+
+
+######################################################################################
+#start a the beginning of the string, iterate through and check for a space
+#if we find a space return the offset from the start
+str_length = len(str)
+def find_start_of_a_word(str, str_length, i=0):
+  while i < str_length:
+      if str[i] != ' ':
+          return i
+      i+=1
+  
+def q_is_it_a_keyword(str, start):
+    if str[start] == 'c':
+        if str[start:start+6] == 'class ': 
+            return (str[start:start+6], start+6) #the next possible char #class_name = get_word(i+6, line_len)
+    elif str[start] == 'd':
+        if str[start:start+4] == 'def ':
+            return str[start:start+4]#get_word(i+4, line_len)
+
+def get_word(str, start, str_length):
+    i=start
+    while i < str_length:
+        if str[i] == ' ' or str[i] == '(':
+            return (i, str[start:i])
+        i+=1
+
+
+str = " class    FriendFace   "
+str_length = len(str)
+
+
+
+def get_class_and_name_and_locations(str):
+    str_length = len(str)
+    start = find_start_of_a_word(str, str_length)
+    class_details = q_is_it_a_keyword(str, start)
+    start = find_start_of_a_word(str, str_length, class_details[1])
+    name = get_word(str, start, str_length)
+    print 'keyword: %s, keyword_location: %s' % (class_details[0],class_details[1])
+    print 'name: %s, name_location: %s' % (name[1],name[0])  #currently prints end of name and keyword 
+
+
+
+##########################################################
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+i = 0
+line_len = len(str)
+while i < line_len:
+  if str[i] == 'c':
+    if str[i:i+6] == 'class ': 
+      class_name = get_word(i+6, line_len)     
+
+  if str[i] == 'd':
+    if str[i:i+4] == 'def ':
+      get_word(i+4, line_len)
+    print str[i]
+    i += 1
+    
+def find_class(
+
+def find_keyword(line_str, keyword):
+     
+    
+def get_word(start, str_length):
+    word_start = -1
+    i=start
+    while i < str_length:
+      if str[i] == ' ' or str[i] == '(':
+        word_start = i
+        break
+    while i < str_length:
+
+def move_to_beginning_of_word(start, str_length):
+     
+        
+        #loop through for remainder of name
+        
+        
+str[2:6] for substring.
+  

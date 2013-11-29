@@ -1,0 +1,33 @@
+Gedit plugin --navigation
+
+order of which to do things:
+
+1) when a new Gedit window is created we call __intit__.This will set a flag on our class instance for keboard shortcuts
+and two arrays will be created (and filled) on our instance:
+  array_regex - holds the regex patterns for items in code, i.e '.method', we use this to figure out 
+                what we have selected.
+                
+  array_regex_search - holds the regex patterns for the search across the current project, i.e. searching for
+                       all instance methods 'def <method>' (basic).
+                       
+After these arrays are created we call self.build_dictionary which:
+  uses the subprocess module to run an egrep command (which 'should' (but doesn't yet) iterate through array_regex_search),
+  does these searches, and returns the stdout into a string via a PIPE. This string is then split into an array called
+  instance_methods_locations and has the following form:
+     ###'file_path:line_number:string_matched'###
+    ['/home/ad/workspace/orders_service/lib/initialize_logger.rb:2:def activity_logger',
+     '/home/ad/workspace/orders_service/lib/communication_service_notifier.rb:4:def initialize(',  
+     ...]   
+     
+####TODO####
+>> the search should be done in a separate thread and Ctrl+b navigate will hang until search is complete 
+>> write my own optimised egrep equivalent (>,<) (possibly...)
+>> implement a pop up dialogue box for multiple entries
+>> the file must use the 'require' to find exactly what files to searches
+>> in a rails app only certain directories need to be searched
+##########################################################################################################################                    
+2) 
+                       
+                        
+
+
