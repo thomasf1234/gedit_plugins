@@ -1,4 +1,5 @@
 #!/usr/bin/python
+#http://www.pygtk.org/pygtk2tutorial/ch-GettingStarted.html
 
 #a file path will be given with a line and offset which we will:
 #create a tab for it if it is not open,
@@ -45,6 +46,8 @@ import os, glob, re, shlex
 from subprocess import Popen, PIPE
 from gi.repository import GObject, Gtk, Gedit, Gio
 
+from gi.repository import Pango
+
 class ExamplePlugin03(GObject.Object, Gedit.WindowActivatable):
     __gtype_name__ = "ExamplePlugin03"
     window = GObject.property(type=Gedit.Window)
@@ -79,7 +82,7 @@ class ExamplePlugin03(GObject.Object, Gedit.WindowActivatable):
         "attr_accessor[ ]+:[a-zA-Z][a-zA-Z0-9_]*"
         ]
         
-        self.build_dictionary() #must change to do when file opens from rails app.
+        #self.build_dictionary() #must change to do when file opens from rails app.
 
     def do_activate(self):
         print "Activating plugin..."
@@ -106,6 +109,7 @@ class ExamplePlugin03(GObject.Object, Gedit.WindowActivatable):
         pass
          
     def on_key_press_event(self, window, event):
+        Scope().get_next_word(window.get_active_tab().get_document())
         #print "key pressed : %s" % event.keyval #works
         if event.keyval == 65507: #if 'Ctrl' key is pressed down
             self.flag = 1
@@ -115,6 +119,14 @@ class ExamplePlugin03(GObject.Object, Gedit.WindowActivatable):
         #print "key released : %s" % event.keyval #works
         #print self.flag
         #if 'b' key is released while 'Ctrl' is held down
+        
+        #menu = Gtk.Menu()
+        #buf = "Test-undermenu - 5"
+        #menu_items = Gtk.MenuItem(buf)
+        #menu.append(menu_items)
+        #menu_items.show()
+        #menu.popup(None, None, None, None, event.keyval, event.time)
+        
         if event.keyval == 98 and self.flag == 1: 
             print "Ctrl+b has been pressed"
             self.flag = 0
@@ -178,7 +190,7 @@ class ExamplePlugin03(GObject.Object, Gedit.WindowActivatable):
             print "start_line %s" % iter_start_line.get_line_offset()
             
             iter_end_line = document.get_iter_at_mark(cursor_mark) #see https://developer.gnome.org/pygtk/stable/class-gtktextiter.html
-           # print "line: %s" % iter_end_line.get_line()#+1
+            # print "line: %s" % iter_end_line.get_line()#+1
             iter_end_line.forward_to_line_end()
             print "end_line %s" % iter_end_line.get_line_offset()
             line_string = document.get_text(iter_start_line, iter_end_line, False)
@@ -233,4 +245,46 @@ class ExamplePlugin03(GObject.Object, Gedit.WindowActivatable):
                 return '%s:%s:%s' % (i.split(':')[0], i.split(':')[1], 0)  
                 
                 
+                
+                
+class Scope():  #uses TextIter
+
+    def __init__(self):
+        pass  
+        
+    def next_char(self):
+        self.iter.forward_char()      
+        next_char = self.iter.get_char()
+        self.iter.backward_char()
+        return next_char   
+        
+    def previous_char(self):
+        self.iter.backward_char()      
+        previous_char = self.iter.get_char()
+        self.iter.forward_char()
+        return previous_char
+        
+    def get_next_word(self, document):
+        self.iter = self.set_text_iter_to_beginning(document)       
+        self.goto_start_of_next_word()
+        print self.get_current_word()
+        
+    def set_text_iter_to_beginning(self, document):
+        return document.get_start_iter()
+        
+    def goto_start_of_next_word(self): 
+        while self.iter.get_char() == ' ' or self.iter.ends_line():
+            if self.iter.is_end():
+                print "end of the document"
+                return
+            self.iter.forward_char()
+            
+    def get_current_word(self):
+        s= ''
+        while self.iter.get_char() != ' ':           
+            if self.iter.ends_line() or self.iter.is_end(): #maybe don't need this second check
+                return s
+            s += self.iter.get_char()
+            self.iter.forward_char()
+        return s     
                          
